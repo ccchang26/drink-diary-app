@@ -198,6 +198,7 @@ h2.section-title::before{
 .price-wrap input{ padding-left: 30px; }
 .price-wrap input:disabled{ opacity:0.45; }
 
+/* 實心填滿按鈕樣式 */
 .treated-toggle{
   display:flex;
   align-items:center;
@@ -206,10 +207,34 @@ h2.section-title::before{
   cursor:pointer;
   user-select:none;
 }
-.treated-toggle input{
-  width:18px; height:18px;
-  accent-color: var(--caramel);
-  cursor:pointer;
+.treated-toggle input[type="checkbox"]{
+  appearance: none;
+  -webkit-appearance: none;
+  width: 19px;
+  height: 19px;
+  border: 2px solid var(--caramel);
+  border-radius: 5px;
+  background-color: var(--cream);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin: 0;
+}
+.treated-toggle input[type="checkbox"]:checked{
+  background-color: var(--caramel);
+  border-color: var(--caramel);
+}
+.treated-toggle input[type="checkbox"]:checked::after{
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 .treated-toggle span{
   font-size:12.5px;
