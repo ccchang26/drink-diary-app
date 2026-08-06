@@ -120,7 +120,6 @@ nav button{
 }
 nav button svg{ width:22px; height:22px; }
 nav button.active{ color: var(--brown-sugar); font-weight:700; }
-nav button.active svg{ filter: none; }
 
 /* ---------- Content ---------- */
 main{
@@ -219,6 +218,61 @@ h2.section-title::before{
 }
 .treated-toggle span b{ color:var(--brown-sugar); font-weight:700; }
 
+.chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.chip{
+  font-size:12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--cream-2);
+  color: var(--brown-sugar);
+  font-weight:700;
+  border: 1px solid #EADFCB;
+  cursor:pointer;
+  transition: background .15s ease;
+}
+.chip:active{ background: var(--milk-tea); }
+
+.calorie-preview{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background: var(--cream-2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: -2px 0 14px;
+  font-size:12.5px;
+  color: var(--brown-sugar-dark);
+}
+.calorie-preview .cicon{ font-size:18px; flex-shrink:0; }
+.calorie-preview b{ font-weight:900; }
+.calorie-preview .note{ display:block; font-size:10.5px; color:#A9835D; margin-top:2px; }
+
+button.secondary{
+  width:100%;
+  padding: 13px;
+  border: 1.5px dashed var(--caramel);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--brown-sugar);
+  font-family:'Noto Serif TC', serif;
+  font-weight:700;
+  font-size:14.5px;
+  cursor:pointer;
+  transition: transform .12s ease;
+}
+button.secondary:active{ transform: scale(0.97); }
+button.secondary:disabled{ opacity:0.6; cursor:not-allowed; border-color:#ccc; color:#888; }
+
+.no-drink-msg{
+  margin-top:12px;
+  text-align:center;
+  font-size:13px;
+  color: var(--brown-sugar-dark);
+  line-height:1.6;
+}
+.no-drink-msg .praise{ font-family:'Noto Serif TC', serif; font-weight:700; font-size:15px; display:block; margin-bottom:6px; color: var(--caramel); }
+.no-drink-msg .figures b{ color: var(--caramel); font-size:16px; }
+
 button.primary{
   width:100%;
   padding: 14px;
@@ -254,7 +308,7 @@ button.primary:active{ transform: scale(0.97); }
 }
 #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
 
-/* ---------- History ---------- */
+/* ---------- History & Lists ---------- */
 .day-group{ margin-bottom: 18px; }
 .day-label{
   font-size:12px;
@@ -384,7 +438,7 @@ button.primary:active{ transform: scale(0.97); }
   </header>
 
   <main>
-    <!-- 紀錄 -->
+    <!-- 1. 紀錄頁面 -->
     <section class="view active" id="view-record">
       <h2 class="section-title">今天喝了什麼？</h2>
       <div class="card">
@@ -401,6 +455,7 @@ button.primary:active{ transform: scale(0.97); }
           <label>品項</label>
           <input type="text" id="f-item" list="itemList" placeholder="例如：珍珠奶茶">
           <datalist id="itemList"></datalist>
+          <div class="chip-row" id="itemSuggestions"></div>
         </div>
         <div class="row2">
           <div class="field">
@@ -411,6 +466,7 @@ button.primary:active{ transform: scale(0.97); }
               <option selected>半糖</option>
               <option>微糖</option>
               <option>無糖</option>
+              <option>不可調整</option>
             </select>
           </div>
           <div class="field">
@@ -421,6 +477,7 @@ button.primary:active{ transform: scale(0.97); }
               <option selected>微冰</option>
               <option>去冰</option>
               <option>熱飲</option>
+              <option>不可調整</option>
             </select>
           </div>
         </div>
@@ -435,17 +492,40 @@ button.primary:active{ transform: scale(0.97); }
             <span><b>別人請的</b>（不計入花費與平均）</span>
           </label>
         </div>
+
+        <div class="calorie-preview" id="caloriePreview" style="display:none;">
+          <span class="cicon">🔥</span>
+          <div>
+            <span>預估熱量 <b id="calValue">0</b> kcal・慢跑約 <b id="jogValue">0</b> 分鐘可消耗</span>
+            <span class="note">依品項與甜度自動估算，僅供參考</span>
+          </div>
+        </div>
+
         <button class="primary" id="saveBtn">＋ 儲存紀錄</button>
       </div>
     </section>
 
-    <!-- 歷史 -->
+    <!-- 2. 今天沒喝飲料獨立頁面 -->
+    <section class="view" id="view-nodrink">
+      <h2 class="section-title">自制力打卡</h2>
+      <div class="card">
+        <button class="secondary" id="noDrinkBtn">🙌 今天忍住了，沒喝飲料</button>
+        <div class="no-drink-msg" id="noDrinkMsg" style="margin-top:16px;"></div>
+      </div>
+      
+      <div class="card">
+        <h2 class="section-title" style="margin-top:0;">成功忍住的紀錄</h2>
+        <div id="noDrinkHistoryList"></div>
+      </div>
+    </section>
+
+    <!-- 3. 歷史紀錄 -->
     <section class="view" id="view-history">
       <h2 class="section-title">歷史紀錄</h2>
       <div id="historyList"></div>
     </section>
 
-    <!-- 統計 -->
+    <!-- 4. 統計 -->
     <section class="view" id="view-stats">
       <h2 class="section-title">我的手搖統計</h2>
       <div class="stat-grid">
@@ -478,8 +558,30 @@ button.primary:active{ transform: scale(0.97); }
       </div>
 
       <div class="card">
-        <h2 class="section-title" style="margin-top:0;">甜度分布</h2>
-        <div class="sweet-dist" id="sweetDist"></div>
+        <h2 class="section-title" style="margin-top:0;">甜度偏好</h2>
+        <div id="sweetDist" class="sweet-dist"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title" style="margin-top:0;">熱量與慢跑</h2>
+        <div class="stat-grid" style="margin-bottom:0;">
+          <div class="stat-card">
+            <div class="label">總熱量</div>
+            <div class="value" id="statCalTotal">0 <small>kcal</small></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">本月熱量</div>
+            <div class="value" id="statCalMonth">0 <small>kcal</small></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">總共需慢跑</div>
+            <div class="value" id="statJogTotal">0 <small>分</small></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">本月需慢跑</div>
+            <div class="value" id="statJogMonth">0 <small>分</small></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -488,6 +590,10 @@ button.primary:active{ transform: scale(0.97); }
     <button class="active" data-view="record">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1.5 11.5a2 2 0 01-2 1.7H8.5a2 2 0 01-2-1.7L5 8z"/><path d="M9 8c0-2.5 1.3-5 3-5s3 2.5 3 5"/></svg>
       紀錄
+    </button>
+    <button data-view="nodrink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      無飲
     </button>
     <button data-view="history">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -518,6 +624,44 @@ function uid(){
   return (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
 }
 
+// ---------- Calorie estimation ----------
+const SWEET_RATIO = { '全糖':1, '少糖':0.8, '半糖':0.5, '微糖':0.3, '無糖':0, '不可調整':1 };
+
+const DRINK_CATEGORIES = [
+  { keywords:['奶茶','拿鐵','奶蓋','鮮奶','牛奶','奶霜','厚奶'], base:150, sugarMax:210 },
+  { keywords:['可可','巧克力','抹茶拿鐵'], base:200, sugarMax:200 },
+  { keywords:['咖啡','美式','拿铁咖啡'], base:15, sugarMax:150 },
+  { keywords:['果茶','果汁','檸檬','葡萄柚','百香','柳橙','蘋果','荔枝','水蜜桃'], base:20, sugarMax:200 },
+  { keywords:['紅茶','綠茶','烏龍','清茶','青茶','茶'], base:5, sugarMax:190 },
+];
+const DEFAULT_CATEGORY = { base:60, sugarMax:180 };
+
+const TOPPING_CALORIES = {
+  '珍珠':80, '波霸':90, '布丁':70, '仙草':15, '椰果':20, '芋圓':90,
+  '紅豆':60, '綠豆':55, '燕麥':50, '寒天':10, '米苔目':70, '芋頭':90,
+  '奶霜':120, '奶蓋':120, '鮮奶油':110, '珍波椰':170
+};
+
+function estimateCalories(itemName, sweet){
+  if(!itemName) return 0;
+  const name = itemName.trim();
+  if(!name) return 0;
+
+  const category = DRINK_CATEGORIES.find(c => c.keywords.some(k => name.includes(k))) || DEFAULT_CATEGORY;
+  const ratio = SWEET_RATIO[sweet] ?? 0.5;
+
+  let cal = category.base + category.sugarMax * ratio;
+  Object.keys(TOPPING_CALORIES).forEach(top=>{
+    if(name.includes(top)) cal += TOPPING_CALORIES[top];
+  });
+  return Math.round(cal);
+}
+
+const JOG_KCAL_PER_MIN = 10;
+function jogMinutesFor(calories){
+  return Math.max(0, Math.round(calories / JOG_KCAL_PER_MIN));
+}
+
 // ---------- Nav switching ----------
 const navButtons = document.querySelectorAll('nav button');
 const views = document.querySelectorAll('.view');
@@ -527,6 +671,7 @@ navButtons.forEach(btn=>{
     views.forEach(v=>v.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'nodrink') renderNoDrinkPanel(false);
     if(btn.dataset.view === 'history') renderHistory();
     if(btn.dataset.view === 'stats') renderStats();
   });
@@ -552,6 +697,52 @@ function refreshDatalists(){
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
+
+// ---------- Store -> frequently ordered items ----------
+const storeInput = document.getElementById('f-store');
+const itemInput = document.getElementById('f-item');
+const itemSuggestions = document.getElementById('itemSuggestions');
+const sweetSelect = document.getElementById('f-sweet');
+
+function renderItemSuggestions(){
+  const store = storeInput.value.trim();
+  if(!store){ itemSuggestions.innerHTML = ''; return; }
+
+  const counts = {};
+  entries.filter(e=> e.store === store).forEach(e=>{
+    counts[e.item] = (counts[e.item]||0) + 1;
+  });
+  const top = Object.entries(counts).sort((a,b)=> b[1]-a[1]).slice(0,5);
+
+  if(top.length === 0){ itemSuggestions.innerHTML = ''; return; }
+  itemSuggestions.innerHTML = top.map(([name])=>
+    `<button type="button" class="chip" data-item="${escapeHtml(name)}">${escapeHtml(name)}</button>`
+  ).join('');
+
+  itemSuggestions.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      itemInput.value = chip.dataset.item;
+      updateCaloriePreview();
+    });
+  });
+}
+storeInput.addEventListener('input', renderItemSuggestions);
+storeInput.addEventListener('change', renderItemSuggestions);
+
+// ---------- Live calorie preview ----------
+const caloriePreview = document.getElementById('caloriePreview');
+function updateCaloriePreview(){
+  const cal = estimateCalories(itemInput.value, sweetSelect.value);
+  if(cal <= 0){
+    caloriePreview.style.display = 'none';
+    return;
+  }
+  document.getElementById('calValue').textContent = cal;
+  document.getElementById('jogValue').textContent = jogMinutesFor(cal);
+  caloriePreview.style.display = 'flex';
+}
+itemInput.addEventListener('input', updateCaloriePreview);
+sweetSelect.addEventListener('change', updateCaloriePreview);
 
 const treatedCheckbox = document.getElementById('f-treated');
 const priceInput = document.getElementById('f-price');
@@ -582,7 +773,8 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
     sweet: document.getElementById('f-sweet').value,
     ice: document.getElementById('f-ice').value,
     price,
-    treated
+    treated,
+    calories: estimateCalories(item, document.getElementById('f-sweet').value)
   };
   entries.unshift(entry);
   saveEntries(entries);
@@ -592,6 +784,8 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   priceInput.value = '';
   treatedCheckbox.checked = false;
   priceInput.disabled = false;
+  itemSuggestions.innerHTML = '';
+  updateCaloriePreview();
 
   showToast(treated ? '已記錄一杯（別人請的）🎁' : '已記錄一杯 🧋');
 });
@@ -632,7 +826,7 @@ function renderHistory(){
           <div class="info">
             <div class="store">${escapeHtml(e.store)}</div>
             <div class="item">${escapeHtml(e.item)}</div>
-            <div class="tags"><span class="tag">${e.sweet}</span><span class="tag">${e.ice}</span>${e.treated ? '<span class="tag" style="background:#F3DCC7;">🎁 別人請的</span>' : ''}</div>
+            <div class="tags"><span class="tag">${e.sweet}</span><span class="tag">${e.ice}</span>${e.calories ? `<span class="tag">🔥 ${e.calories} kcal</span>` : ''}${e.treated ? '<span class="tag" style="background:#F3DCC7;">🎁 別人請的</span>' : ''}</div>
           </div>
           <div class="price">${e.treated ? '—' : '$' + e.price}</div>
           <button class="del" data-id="${e.id}">✕</button>
@@ -666,12 +860,22 @@ function renderStats(){
 
   const now = new Date();
   const ym = now.toISOString().slice(0,7);
-  const monthTotal = paidEntries.filter(e=> e.date.startsWith(ym)).reduce((s,e)=> s + e.price, 0);
+  const monthPaid = paidEntries.filter(e=> e.date.startsWith(ym));
+  const monthTotal = monthPaid.reduce((s,e)=> s + e.price, 0);
+
+  // 熱量計算
+  const calTotal = entries.reduce((s,e)=> s + (e.calories || 0), 0);
+  const calMonth = entries.filter(e=> e.date.startsWith(ym)).reduce((s,e)=> s + (e.calories || 0), 0);
 
   document.getElementById('statCount').innerHTML = `${count} <small>杯</small>`;
   document.getElementById('statTotal').textContent = `NT$${total}`;
   document.getElementById('statMonth').textContent = `NT$${monthTotal}`;
   document.getElementById('statAvg').textContent = `NT$${avg}`;
+
+  document.getElementById('statCalTotal').innerHTML = `${calTotal} <small>kcal</small>`;
+  document.getElementById('statCalMonth').innerHTML = `${calMonth} <small>kcal</small>`;
+  document.getElementById('statJogTotal').innerHTML = `${jogMinutesFor(calTotal)} <small>分</small>`;
+  document.getElementById('statJogMonth').innerHTML = `${jogMinutesFor(calMonth)} <small>分</small>`;
 
   renderRank('storeRank', tally(entries, 'store'), count);
   renderRank('itemRank', tally(entries, 'item'), count);
@@ -700,7 +904,7 @@ function renderRank(elId, rankArr, total){
 }
 
 function renderSweetDist(){
-  const order = ['全糖','少糖','半糖','微糖','無糖'];
+  const order = ['全糖','少糖','半糖','微糖','無糖','不可調整'];
   const map = {};
   order.forEach(k=> map[k] = 0);
   entries.forEach(e=>{ if(map[e.sweet] !== undefined) map[e.sweet]++; });
@@ -712,10 +916,122 @@ function renderSweetDist(){
       <div class="sweet-col">
         <div class="n">${map[k]}</div>
         <div class="bar" style="height:${h}px"></div>
-        <div class="l">${k}</div>
+        <div class="l" style="font-size:${k==='不可調整'? '8.5px' : '10px'}">${k}</div>
       </div>`;
   }).join('');
 }
+
+// ---------- No-drink day tracking ----------
+const NODRINK_KEY = 'shakeDiaryNoDrinkDays_v1';
+function loadNoDrinkDays(){
+  try{ return JSON.parse(localStorage.getItem(NODRINK_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveNoDrinkDays(days){
+  localStorage.setItem(NODRINK_KEY, JSON.stringify(days));
+}
+let noDrinkDays = loadNoDrinkDays();
+
+const ENCOURAGEMENTS = [
+  '太棒了，你的荷包謝謝你！',
+  '忍住這一杯，身體會感謝你的！',
+  '今天的自制力 100 分！',
+  '少喝一杯，離目標更近一步。',
+  '這樣的自己，值得掌聲！',
+  '省下的錢，留著喝更想喝的那杯吧！'
+];
+
+function averagePaidPrice(){
+  const paid = entries.filter(e=> !e.treated);
+  if(paid.length === 0) return 50;
+  return Math.round(paid.reduce((s,e)=> s + e.price, 0) / paid.length);
+}
+
+function noDrinkStatsThisMonth(){
+  const ym = todayStr().slice(0,7);
+  const count = noDrinkDays.filter(d=> d.startsWith(ym)).length;
+  const saved = count * averagePaidPrice();
+  return { count, saved };
+}
+
+function renderNoDrinkPanel(justClicked){
+  const msgEl = document.getElementById('noDrinkMsg');
+  const { count, saved } = noDrinkStatsThisMonth();
+  const today = todayStr();
+  const alreadyMarked = noDrinkDays.includes(today);
+  const hasDrinkToday = entries.some(e=> e.date === today);
+
+  const noDrinkBtn = document.getElementById('noDrinkBtn');
+  if(hasDrinkToday){
+    noDrinkBtn.disabled = true;
+    noDrinkBtn.textContent = '今天已經記錄有喝飲料囉';
+  } else if(alreadyMarked){
+    noDrinkBtn.disabled = true;
+    noDrinkBtn.textContent = '✅ 今天已經打卡忍住了';
+  } else {
+    noDrinkBtn.disabled = false;
+    noDrinkBtn.textContent = '🙌 今天忍住了，沒喝飲料';
+  }
+
+  if(count > 0 || justClicked){
+    const praise = justClicked ? ENCOURAGEMENTS[Math.floor(Math.random()*ENCOURAGEMENTS.length)] : '';
+    msgEl.innerHTML = `
+      ${praise ? `<span class="praise">${praise}</span>` : ''}
+      <span class="figures">這個月忍住了 <b>${count}</b> 次，估計省下 <b>NT$${saved}</b> 元</span>
+    `;
+  } else {
+    msgEl.innerHTML = `<span style="color:#A9835D; font-size:12.5px;">這個月還沒有忍住紀錄，加油！</span>`;
+  }
+
+  renderNoDrinkHistory();
+}
+
+function renderNoDrinkHistory(){
+  const container = document.getElementById('noDrinkHistoryList');
+  if(noDrinkDays.length === 0){
+    container.innerHTML = `<p style="color:#B49A82; font-size:13px; margin:0; text-align:center; padding:20px 0;">尚未有打卡紀錄</p>`;
+    return;
+  }
+
+  const sorted = [...noDrinkDays].sort((a,b)=> b.localeCompare(a));
+  let html = '';
+  sorted.forEach(date => {
+    html += `
+      <div class="entry">
+        <div class="dot" style="background: linear-gradient(135deg, var(--caramel), var(--brown-sugar));">🌱</div>
+        <div class="info">
+          <div class="store" style="font-size:13.5px;">${formatDate(date)}</div>
+          <div class="item">成功忍住不喝飲料！</div>
+        </div>
+        <button class="del del-nodrink" data-date="${date}">✕</button>
+      </div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.del-nodrink').forEach(btn => {
+    btn.addEventListener('click', () => {
+      noDrinkDays = noDrinkDays.filter(d => d !== btn.dataset.date);
+      saveNoDrinkDays(noDrinkDays);
+      renderNoDrinkPanel(false);
+    });
+  });
+}
+
+document.getElementById('noDrinkBtn').addEventListener('click', ()=>{
+  const today = todayStr();
+  if(entries.some(e=> e.date === today)){
+    showToast('今天已經記錄有喝飲料囉！');
+    return;
+  }
+  if(noDrinkDays.includes(today)){
+    showToast('今天已經打卡過了！');
+    return;
+  }
+  noDrinkDays.push(today);
+  saveNoDrinkDays(noDrinkDays);
+  renderNoDrinkPanel(true);
+  showToast('太棒了！已紀錄今天沒喝飲料 🎉');
+});
 
 // ---------- Init ----------
 refreshDatalists();
