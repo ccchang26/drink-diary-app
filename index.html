@@ -4,13 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>手搖日記</title>
+
+<!-- 在這裡加上你的 App 圖示連結 -->
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="手搖日記">
 <meta name="theme-color" content="#6B3A22">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap');
-
 :root{
   --cream:#F8EFE1;
   --cream-2:#F1E3CC;
@@ -120,6 +125,7 @@ nav button{
 }
 nav button svg{ width:22px; height:22px; }
 nav button.active{ color: var(--brown-sugar); font-weight:700; }
+nav button.active svg{ filter: none; }
 
 /* ---------- Content ---------- */
 main{
@@ -198,50 +204,80 @@ h2.section-title::before{
 .price-wrap input{ padding-left: 30px; }
 .price-wrap input:disabled{ opacity:0.45; }
 
-/* 實心填滿按鈕樣式 */
 .treated-toggle{
   display:flex;
   align-items:center;
   gap:8px;
   margin-top:9px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--cream);
+  border: 1.5px solid #EADFCB;
   cursor:pointer;
   user-select:none;
+  transition: border-color .2s ease;
 }
-.treated-toggle input[type="checkbox"]{
-  appearance: none;
-  -webkit-appearance: none;
-  width: 19px;
-  height: 19px;
-  border: 2px solid var(--caramel);
-  border-radius: 5px;
-  background-color: var(--cream);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  margin: 0;
-}
-.treated-toggle input[type="checkbox"]:checked{
-  background-color: var(--caramel);
+.treated-toggle.active{
   border-color: var(--caramel);
 }
-.treated-toggle input[type="checkbox"]:checked::after{
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 1px;
-  width: 5px;
-  height: 10px;
-  border: solid var(--white);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+.treated-toggle input{
+  appearance:none;
+  -webkit-appearance:none;
+  width:20px; height:20px;
+  border-radius:50%;
+  border: 2px solid #D8C6A8;
+  background: var(--white);
+  cursor:pointer;
+  flex-shrink:0;
+  position:relative;
+  transition: background .2s ease, border-color .2s ease;
+}
+.treated-toggle input:checked{
+  background: var(--caramel);
+  border-color: var(--brown-sugar);
+}
+.treated-toggle input:checked::after{
+  content:"✓";
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--white); font-size:12px; font-weight:900;
 }
 .treated-toggle span{
   font-size:12.5px;
   color:#8A7660;
   font-weight:500;
+  transition: color .2s ease;
 }
-.treated-toggle span b{ color:var(--brown-sugar); font-weight:700; }
+.treated-toggle span b{ color:var(--brown-sugar); font-weight:700; transition: color .2s ease; }
+.treated-toggle.active span{ color: var(--brown-sugar); }
+.treated-toggle.active span b{ color: var(--caramel); }
+
+.period-tabs{
+  display:flex;
+  gap:6px;
+  background: var(--cream-2);
+  padding:4px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+.period-tabs button{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding: 8px 0;
+  border-radius: 11px;
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:12.5px;
+  font-weight:700;
+  color:#A9835D;
+  cursor:pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.period-tabs button.active{
+  background: var(--white);
+  color: var(--brown-sugar-dark);
+  box-shadow: 0 2px 8px rgba(75,39,22,0.12);
+}
 
 .chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
 .chip{
@@ -286,7 +322,6 @@ button.secondary{
   transition: transform .12s ease;
 }
 button.secondary:active{ transform: scale(0.97); }
-button.secondary:disabled{ opacity:0.6; cursor:not-allowed; border-color:#ccc; color:#888; }
 
 .no-drink-msg{
   margin-top:12px;
@@ -294,9 +329,11 @@ button.secondary:disabled{ opacity:0.6; cursor:not-allowed; border-color:#ccc; c
   font-size:13px;
   color: var(--brown-sugar-dark);
   line-height:1.6;
+  display:none;
 }
-.no-drink-msg .praise{ font-family:'Noto Serif TC', serif; font-weight:700; font-size:15px; display:block; margin-bottom:6px; color: var(--caramel); }
-.no-drink-msg .figures b{ color: var(--caramel); font-size:16px; }
+.no-drink-msg.show{ display:block; }
+.no-drink-msg .praise{ font-family:'Noto Serif TC', serif; font-weight:700; font-size:14.5px; display:block; margin-bottom:4px; }
+.no-drink-msg .figures b{ color: var(--caramel); }
 
 button.primary{
   width:100%;
@@ -333,7 +370,7 @@ button.primary:active{ transform: scale(0.97); }
 }
 #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
 
-/* ---------- History & Lists ---------- */
+/* ---------- History ---------- */
 .day-group{ margin-bottom: 18px; }
 .day-label{
   font-size:12px;
@@ -424,11 +461,6 @@ button.primary:active{ transform: scale(0.97); }
 .bar-track{ height:9px; background:var(--cream-2); border-radius:6px; overflow:hidden; }
 .bar-fill{ height:100%; background: linear-gradient(90deg, var(--caramel), var(--brown-sugar)); border-radius:6px; transition: width .5s ease; }
 
-.sweet-dist{ display:flex; align-items:flex-end; gap:8px; height:100px; padding-top:10px; }
-.sweet-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
-.sweet-col .bar{ width:100%; background: linear-gradient(180deg, var(--peach), var(--caramel)); border-radius:6px 6px 3px 3px; min-height:4px; }
-.sweet-col .n{ font-size:10.5px; color:#A9835D; margin-top:4px; font-weight:700; }
-.sweet-col .l{ font-size:10px; color:#8A7660; margin-top:2px; }
 </style>
 </head>
 <body>
@@ -463,7 +495,7 @@ button.primary:active{ transform: scale(0.97); }
   </header>
 
   <main>
-    <!-- 1. 紀錄頁面 -->
+    <!-- 紀錄 -->
     <section class="view active" id="view-record">
       <h2 class="section-title">今天喝了什麼？</h2>
       <div class="card">
@@ -491,7 +523,6 @@ button.primary:active{ transform: scale(0.97); }
               <option selected>半糖</option>
               <option>微糖</option>
               <option>無糖</option>
-              <option>不可調整</option>
             </select>
           </div>
           <div class="field">
@@ -502,7 +533,6 @@ button.primary:active{ transform: scale(0.97); }
               <option selected>微冰</option>
               <option>去冰</option>
               <option>熱飲</option>
-              <option>不可調整</option>
             </select>
           </div>
         </div>
@@ -512,7 +542,7 @@ button.primary:active{ transform: scale(0.97); }
             <span>NT$</span>
             <input type="number" id="f-price" placeholder="0" min="0" step="1">
           </div>
-          <label class="treated-toggle">
+          <label class="treated-toggle" id="treatedLabel">
             <input type="checkbox" id="f-treated">
             <span><b>別人請的</b>（不計入花費與平均）</span>
           </label>
@@ -530,27 +560,13 @@ button.primary:active{ transform: scale(0.97); }
       </div>
     </section>
 
-    <!-- 2. 今天沒喝飲料獨立頁面 -->
-    <section class="view" id="view-nodrink">
-      <h2 class="section-title">自制力打卡</h2>
-      <div class="card">
-        <button class="secondary" id="noDrinkBtn">🙌 今天忍住了，沒喝飲料</button>
-        <div class="no-drink-msg" id="noDrinkMsg" style="margin-top:16px;"></div>
-      </div>
-      
-      <div class="card">
-        <h2 class="section-title" style="margin-top:0;">成功忍住的紀錄</h2>
-        <div id="noDrinkHistoryList"></div>
-      </div>
-    </section>
-
-    <!-- 3. 歷史紀錄 -->
+    <!-- 歷史 -->
     <section class="view" id="view-history">
       <h2 class="section-title">歷史紀錄</h2>
       <div id="historyList"></div>
     </section>
 
-    <!-- 4. 統計 -->
+    <!-- 統計 -->
     <section class="view" id="view-stats">
       <h2 class="section-title">我的手搖統計</h2>
       <div class="stat-grid">
@@ -570,6 +586,13 @@ button.primary:active{ transform: scale(0.97); }
           <div class="label">平均每杯</div>
           <div class="value" id="statAvg">NT$0</div>
         </div>
+      </div>
+
+      <div class="period-tabs" id="periodTabs">
+        <button data-period="week">本週</button>
+        <button data-period="month">本月</button>
+        <button data-period="year">今年</button>
+        <button class="active" data-period="all">全部</button>
       </div>
 
       <div class="card">
@@ -604,16 +627,21 @@ button.primary:active{ transform: scale(0.97); }
         </div>
       </div>
     </section>
+
+    <!-- 忍住了 -->
+    <section class="view" id="view-nodrink">
+      <h2 class="section-title">今天沒喝飲料？</h2>
+      <div class="card">
+        <button class="secondary" id="noDrinkBtn">🙌 今天忍住了，沒喝飲料</button>
+        <div class="no-drink-msg" id="noDrinkMsg"></div>
+      </div>
+    </section>
   </main>
 
   <nav>
     <button class="active" data-view="record">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1.5 11.5a2 2 0 01-2 1.7H8.5a2 2 0 01-2-1.7L5 8z"/><path d="M9 8c0-2.5 1.3-5 3-5s3 2.5 3 5"/></svg>
       紀錄
-    </button>
-    <button data-view="nodrink">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      沒喝
     </button>
     <button data-view="history">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -622,6 +650,10 @@ button.primary:active{ transform: scale(0.97); }
     <button data-view="stats">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
       統計
+    </button>
+    <button data-view="nodrink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C12 2 6 9 6 14a6 6 0 0012 0c0-5-6-12-6-12z"/></svg>
+      忍住了
     </button>
   </nav>
 
@@ -645,7 +677,9 @@ function uid(){
 }
 
 // ---------- Calorie estimation ----------
-const SWEET_RATIO = { '全糖':1, '少糖':0.8, '半糖':0.5, '微糖':0.3, '無糖':0, '不可調整':1 };
+// 以一杯 700ml 手搖飲為基準的粗估模型：
+// 熱量 = 液體基底熱量 + (該類飲品滿糖熱量 × 甜度比例) + 加料熱量
+const SWEET_RATIO = { '全糖':1, '少糖':0.8, '半糖':0.5, '微糖':0.3, '無糖':0 };
 
 const DRINK_CATEGORIES = [
   { keywords:['奶茶','拿鐵','奶蓋','鮮奶','牛奶','奶霜','厚奶'], base:150, sugarMax:210 },
@@ -677,7 +711,7 @@ function estimateCalories(itemName, sweet){
   return Math.round(cal);
 }
 
-const JOG_KCAL_PER_MIN = 10;
+const JOG_KCAL_PER_MIN = 10; // 中等速度慢跑，約每分鐘消耗 10 大卡（粗估）
 function jogMinutesFor(calories){
   return Math.max(0, Math.round(calories / JOG_KCAL_PER_MIN));
 }
@@ -691,9 +725,9 @@ navButtons.forEach(btn=>{
     views.forEach(v=>v.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('view-' + btn.dataset.view).classList.add('active');
-    if(btn.dataset.view === 'nodrink') renderNoDrinkPanel(false);
     if(btn.dataset.view === 'history') renderHistory();
     if(btn.dataset.view === 'stats') renderStats();
+    if(btn.dataset.view === 'nodrink') renderNoDrinkPanel(false);
   });
 });
 
@@ -749,7 +783,7 @@ function renderItemSuggestions(){
 storeInput.addEventListener('input', renderItemSuggestions);
 storeInput.addEventListener('change', renderItemSuggestions);
 
-// ---------- Live calorie preview ----------
+// ---------- Live calorie / jogging preview ----------
 const caloriePreview = document.getElementById('caloriePreview');
 function updateCaloriePreview(){
   const cal = estimateCalories(itemInput.value, sweetSelect.value);
@@ -765,9 +799,11 @@ itemInput.addEventListener('input', updateCaloriePreview);
 sweetSelect.addEventListener('change', updateCaloriePreview);
 
 const treatedCheckbox = document.getElementById('f-treated');
+const treatedLabel = document.getElementById('treatedLabel');
 const priceInput = document.getElementById('f-price');
 treatedCheckbox.addEventListener('change', ()=>{
   priceInput.disabled = treatedCheckbox.checked;
+  treatedLabel.classList.toggle('active', treatedCheckbox.checked);
   if(treatedCheckbox.checked) priceInput.value = '';
 });
 
@@ -803,9 +839,11 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   document.getElementById('f-item').value = '';
   priceInput.value = '';
   treatedCheckbox.checked = false;
+  treatedLabel.classList.remove('active');
   priceInput.disabled = false;
   itemSuggestions.innerHTML = '';
   updateCaloriePreview();
+  renderNoDrinkPanel(false);
 
   showToast(treated ? '已記錄一杯（別人請的）🎁' : '已記錄一杯 🧋');
 });
@@ -880,27 +918,51 @@ function renderStats(){
 
   const now = new Date();
   const ym = now.toISOString().slice(0,7);
-  const monthPaid = paidEntries.filter(e=> e.date.startsWith(ym));
-  const monthTotal = monthPaid.reduce((s,e)=> s + e.price, 0);
-
-  // 熱量計算
-  const calTotal = entries.reduce((s,e)=> s + (e.calories || 0), 0);
-  const calMonth = entries.filter(e=> e.date.startsWith(ym)).reduce((s,e)=> s + (e.calories || 0), 0);
+  const monthTotal = paidEntries.filter(e=> e.date.startsWith(ym)).reduce((s,e)=> s + e.price, 0);
 
   document.getElementById('statCount').innerHTML = `${count} <small>杯</small>`;
   document.getElementById('statTotal').textContent = `NT$${total}`;
   document.getElementById('statMonth').textContent = `NT$${monthTotal}`;
   document.getElementById('statAvg').textContent = `NT$${avg}`;
 
+  const calTotal = entries.reduce((s,e)=> s + (e.calories||0), 0);
+  const calMonth = entries.filter(e=> e.date.startsWith(ym)).reduce((s,e)=> s + (e.calories||0), 0);
   document.getElementById('statCalTotal').innerHTML = `${calTotal} <small>kcal</small>`;
   document.getElementById('statCalMonth').innerHTML = `${calMonth} <small>kcal</small>`;
   document.getElementById('statJogTotal').innerHTML = `${jogMinutesFor(calTotal)} <small>分</small>`;
   document.getElementById('statJogMonth').innerHTML = `${jogMinutesFor(calMonth)} <small>分</small>`;
 
-  renderRank('storeRank', tally(entries, 'store'), count);
-  renderRank('itemRank', tally(entries, 'item'), count);
-  renderSweetDist();
+  renderRanks(currentPeriod);
 }
+
+let currentPeriod = 'all';
+function inPeriod(dateStr, period){
+  if(period === 'all') return true;
+  const d = new Date(dateStr + 'T00:00:00');
+  const now = new Date();
+  if(period === 'year') return d.getFullYear() === now.getFullYear();
+  if(period === 'month') return dateStr.slice(0,7) === now.toISOString().slice(0,7);
+  if(period === 'week'){
+    const dow = (now.getDay() + 6) % 7; // 0 = Monday
+    const monday = new Date(now); monday.setHours(0,0,0,0); monday.setDate(now.getDate() - dow);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+    return d >= monday && d <= sunday;
+  }
+  return true;
+}
+function renderRanks(period){
+  const filtered = entries.filter(e => inPeriod(e.date, period));
+  renderRank('storeRank', tally(filtered, 'store'), filtered.length);
+  renderRank('itemRank', tally(filtered, 'item'), filtered.length);
+}
+document.querySelectorAll('#periodTabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentPeriod = btn.dataset.period;
+    document.querySelectorAll('#periodTabs button').forEach(b=> b.classList.remove('active'));
+    btn.classList.add('active');
+    renderRanks(currentPeriod);
+  });
+});
 
 function tally(list, key){
   const map = {};
@@ -923,23 +985,6 @@ function renderRank(elId, rankArr, total){
   `).join('');
 }
 
-function renderSweetDist(){
-  const order = ['全糖','少糖','半糖','微糖','無糖','不可調整'];
-  const map = {};
-  order.forEach(k=> map[k] = 0);
-  entries.forEach(e=>{ if(map[e.sweet] !== undefined) map[e.sweet]++; });
-  const max = Math.max(1, ...Object.values(map));
-  const el = document.getElementById('sweetDist');
-  el.innerHTML = order.map(k=>{
-    const h = Math.round((map[k]/max) * 80) + (map[k]>0 ? 6 : 0);
-    return `
-      <div class="sweet-col">
-        <div class="n">${map[k]}</div>
-        <div class="bar" style="height:${h}px"></div>
-        <div class="l" style="font-size:${k==='不可調整'? '8.5px' : '10px'}">${k}</div>
-      </div>`;
-  }).join('');
-}
 
 // ---------- No-drink day tracking ----------
 const NODRINK_KEY = 'shakeDiaryNoDrinkDays_v1';
@@ -963,7 +1008,7 @@ const ENCOURAGEMENTS = [
 
 function averagePaidPrice(){
   const paid = entries.filter(e=> !e.treated);
-  if(paid.length === 0) return 50;
+  if(paid.length === 0) return 50; // 沒有資料時的預設估算值
   return Math.round(paid.reduce((s,e)=> s + e.price, 0) / paid.length);
 }
 
@@ -993,48 +1038,16 @@ function renderNoDrinkPanel(justClicked){
     noDrinkBtn.textContent = '🙌 今天忍住了，沒喝飲料';
   }
 
-  if(count > 0 || justClicked){
+  if(count > 0){
     const praise = justClicked ? ENCOURAGEMENTS[Math.floor(Math.random()*ENCOURAGEMENTS.length)] : '';
     msgEl.innerHTML = `
       ${praise ? `<span class="praise">${praise}</span>` : ''}
       <span class="figures">這個月忍住了 <b>${count}</b> 次，估計省下 <b>NT$${saved}</b> 元</span>
     `;
+    msgEl.classList.add('show');
   } else {
-    msgEl.innerHTML = `<span style="color:#A9835D; font-size:12.5px;">這個月還沒有忍住紀錄，加油！</span>`;
+    msgEl.classList.remove('show');
   }
-
-  renderNoDrinkHistory();
-}
-
-function renderNoDrinkHistory(){
-  const container = document.getElementById('noDrinkHistoryList');
-  if(noDrinkDays.length === 0){
-    container.innerHTML = `<p style="color:#B49A82; font-size:13px; margin:0; text-align:center; padding:20px 0;">尚未有打卡紀錄</p>`;
-    return;
-  }
-
-  const sorted = [...noDrinkDays].sort((a,b)=> b.localeCompare(a));
-  let html = '';
-  sorted.forEach(date => {
-    html += `
-      <div class="entry">
-        <div class="dot" style="background: linear-gradient(135deg, var(--caramel), var(--brown-sugar));">🌱</div>
-        <div class="info">
-          <div class="store" style="font-size:13.5px;">${formatDate(date)}</div>
-          <div class="item">成功忍住不喝飲料！</div>
-        </div>
-        <button class="del del-nodrink" data-date="${date}">✕</button>
-      </div>`;
-  });
-  container.innerHTML = html;
-
-  container.querySelectorAll('.del-nodrink').forEach(btn => {
-    btn.addEventListener('click', () => {
-      noDrinkDays = noDrinkDays.filter(d => d !== btn.dataset.date);
-      saveNoDrinkDays(noDrinkDays);
-      renderNoDrinkPanel(false);
-    });
-  });
 }
 
 document.getElementById('noDrinkBtn').addEventListener('click', ()=>{
@@ -1050,11 +1063,11 @@ document.getElementById('noDrinkBtn').addEventListener('click', ()=>{
   noDrinkDays.push(today);
   saveNoDrinkDays(noDrinkDays);
   renderNoDrinkPanel(true);
-  showToast('太棒了！已紀錄今天沒喝飲料 🎉');
 });
 
 // ---------- Init ----------
 refreshDatalists();
+renderNoDrinkPanel(false);
 </script>
 </body>
 </html>
