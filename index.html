@@ -1102,6 +1102,40 @@ document.getElementById('noDrinkBtn').addEventListener('click', ()=>{
 // ---------- Init ----------
 refreshDatalists();
 renderNoDrinkPanel(false);
+  
+// ---------- Service Worker 註冊與自動更新偵測 ----------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        // 檢查是否有正在等待生效的新 Service Worker
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            // 新 SW 安裝完成且舊 SW 仍存在，代表發布了新版
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('發現新版本，正在更新...');
+              setTimeout(() => {
+                window.location.reload();
+              }, 1200);
+            }
+          });
+        });
+      })
+      .catch((err) => {
+        console.error('Service Worker 註冊失敗:', err);
+      });
+
+    // 當 Controller 更換時觸發重載，確保執行最新版本
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  });
+}
 </script>
 </body>
 </html>
