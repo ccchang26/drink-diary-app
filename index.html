@@ -175,12 +175,12 @@ h2.section-title::before{
 }
 .field input, .field select{
   width:100%;
-  padding: 11px 12px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1.5px solid #EADFCB;
   background: var(--cream);
   font-family:'Noto Sans TC', sans-serif;
-  font-size:14.5px;
+  font-size:16px; /* 防止 iOS 點擊輸入框縮放 */
   color: var(--tapioca);
   outline:none;
   transition: border-color .15s ease;
@@ -196,20 +196,47 @@ h2.section-title::before{
 }
 .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-.price-wrap{ position:relative; }
-.price-wrap span{
-  position:absolute; left:12px; top:50%; transform:translateY(-50%);
-  color:var(--caramel); font-weight:700; font-size:14px;
+/* 針對手機畫面調整的價錢輸入外觀 */
+.price-input-group{
+  display: flex;
+  align-items: stretch;
+  border-radius: 12px;
+  border: 1.5px solid #EADFCB;
+  background: var(--cream);
+  overflow: hidden;
+  transition: border-color .15s ease;
 }
-.price-wrap input{ padding-left: 30px; }
-.price-wrap input:disabled{ opacity:0.45; }
+.price-input-group:focus-within{
+  border-color: var(--caramel);
+}
+.price-prefix{
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: rgba(107, 58, 34, 0.06);
+  color: var(--brown-sugar);
+  font-weight: 700;
+  font-size: 14px;
+  user-select: none;
+  border-right: 1px solid #EADFCB;
+}
+.price-input-group input{
+  border: none !important;
+  background: transparent !important;
+  padding: 12px 14px;
+  width: 100%;
+  font-size: 16px;
+}
+.price-input-group input:disabled{
+  opacity: 0.45;
+}
 
 .treated-toggle{
   display:flex;
   align-items:center;
   gap:8px;
   margin-top:9px;
-  padding: 9px 12px;
+  padding: 10px 12px;
   border-radius: 12px;
   background: var(--cream);
   border: 1.5px solid #EADFCB;
@@ -460,7 +487,6 @@ button.primary:active{ transform: scale(0.97); }
 .rank-row .rlabel span{ color:#A9835D; font-weight:700; }
 .bar-track{ height:9px; background:var(--cream-2); border-radius:6px; overflow:hidden; }
 .bar-fill{ height:100%; background: linear-gradient(90deg, var(--caramel), var(--brown-sugar)); border-radius:6px; transition: width .5s ease; }
-
 </style>
 </head>
 <body>
@@ -522,7 +548,9 @@ button.primary:active{ transform: scale(0.97); }
               <option>少糖</option>
               <option selected>半糖</option>
               <option>微糖</option>
+              <option>一分糖</option>
               <option>無糖</option>
+              <option>無法調整</option>
             </select>
           </div>
           <div class="field">
@@ -533,14 +561,15 @@ button.primary:active{ transform: scale(0.97); }
               <option selected>微冰</option>
               <option>去冰</option>
               <option>熱飲</option>
+              <option>無法調整</option>
             </select>
           </div>
         </div>
         <div class="field">
           <label>價錢</label>
-          <div class="price-wrap">
-            <span>NT$</span>
-            <input type="number" id="f-price" placeholder="0" min="0" step="1">
+          <div class="price-input-group">
+            <div class="price-prefix">NT$</div>
+            <input type="number" id="f-price" placeholder="0" min="0" step="1" inputmode="numeric">
           </div>
           <label class="treated-toggle" id="treatedLabel">
             <input type="checkbox" id="f-treated">
@@ -677,9 +706,15 @@ function uid(){
 }
 
 // ---------- Calorie estimation ----------
-// 以一杯 700ml 手搖飲為基準的粗估模型：
-// 熱量 = 液體基底熱量 + (該類飲品滿糖熱量 × 甜度比例) + 加料熱量
-const SWEET_RATIO = { '全糖':1, '少糖':0.8, '半糖':0.5, '微糖':0.3, '無糖':0 };
+const SWEET_RATIO = { 
+  '全糖': 1, 
+  '少糖': 0.8, 
+  '半糖': 0.5, 
+  '微糖': 0.3, 
+  '一分糖': 0.1, 
+  '無糖': 0, 
+  '無法調整': 0.5 // 預設依一般飲品甜度折衷估算
+};
 
 const DRINK_CATEGORIES = [
   { keywords:['奶茶','拿鐵','奶蓋','鮮奶','牛奶','奶霜','厚奶'], base:150, sugarMax:210 },
@@ -711,7 +746,7 @@ function estimateCalories(itemName, sweet){
   return Math.round(cal);
 }
 
-const JOG_KCAL_PER_MIN = 10; // 中等速度慢跑，約每分鐘消耗 10 大卡（粗估）
+const JOG_KCAL_PER_MIN = 10;
 function jogMinutesFor(calories){
   return Math.max(0, Math.round(calories / JOG_KCAL_PER_MIN));
 }
@@ -943,7 +978,7 @@ function inPeriod(dateStr, period){
   if(period === 'year') return d.getFullYear() === now.getFullYear();
   if(period === 'month') return dateStr.slice(0,7) === now.toISOString().slice(0,7);
   if(period === 'week'){
-    const dow = (now.getDay() + 6) % 7; // 0 = Monday
+    const dow = (now.getDay() + 6) % 7;
     const monday = new Date(now); monday.setHours(0,0,0,0); monday.setDate(now.getDate() - dow);
     const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
     return d >= monday && d <= sunday;
@@ -985,7 +1020,6 @@ function renderRank(elId, rankArr, total){
   `).join('');
 }
 
-
 // ---------- No-drink day tracking ----------
 const NODRINK_KEY = 'shakeDiaryNoDrinkDays_v1';
 function loadNoDrinkDays(){
@@ -1008,7 +1042,7 @@ const ENCOURAGEMENTS = [
 
 function averagePaidPrice(){
   const paid = entries.filter(e=> !e.treated);
-  if(paid.length === 0) return 50; // 沒有資料時的預設估算值
+  if(paid.length === 0) return 50;
   return Math.round(paid.reduce((s,e)=> s + e.price, 0) / paid.length);
 }
 
